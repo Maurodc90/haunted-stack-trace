@@ -47,7 +47,7 @@ public class PossessedExceptionHandler {
                     exception.getClass().getName(),
                     "unknown",
                     exception.getMessage(),
-                    "Start Ollama (ollama serve) and try again.",
+                    "The model gave no usable answer. Check that Ollama is running (curl localhost:11434) and try again.",
                     "The spirits are silent tonight.");
             return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).body(silence);
         }

@@ -67,7 +67,9 @@ public class GhostService {
                 // Spring AI 2.0: options are passed as a builder, not a built object.
                 .options(OllamaChatOptions.builder()
                         .model(model)
-                        .temperature(0.4) )// low enough to stay accurate, high enough for a voice
+                        .temperature(0.4) // low enough to stay accurate, high enough for a voice
+                        .disableThinking() // Gemma 4 reasons silently by default; that ate the token budget
+                        .numPredict(400)) // hard cap on answer length: the model can never write forever
                 .call()
                 .entity(converter);
     }
