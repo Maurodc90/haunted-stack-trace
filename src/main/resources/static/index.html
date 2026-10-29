@@ -1,0 +1,255 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>The Haunted Stack Trace</title>
+    <style>
+        /* No external fonts or libraries: the page works offline, like the model. */
+        /* Catppuccin Mocha palette (github.com/catppuccin/catppuccin, MIT licence) */
+        :root {
+            --bg: #1e1e2e;       /* base */
+            --panel: #181825;    /* mantle */
+            --border: #313244;   /* surface0 */
+            --text: #cdd6f4;     /* text */
+            --muted: #a6adc8;    /* subtext0 */
+            --marigold: #fab387; /* peach */
+            --ghost: #94e2d5;    /* teal */
+            --blood: #f38ba8;    /* red */
+        }
+        * { box-sizing: border-box; }
+        body {
+            margin: 0;
+            background: radial-gradient(ellipse at top, #313244 0%, var(--bg) 55%);
+            color: var(--text);
+            font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            min-height: 100vh;
+        }
+        main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
+        h1 {
+            font-family: Georgia, "Times New Roman", serif;
+            font-weight: normal;
+            font-size: clamp(2rem, 6vw, 3.2rem);
+            margin: 0 0 8px;
+            color: var(--marigold);
+            text-shadow: 0 0 18px rgba(250, 179, 135, 0.35);
+        }
+        .subtitle { color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+        h2 {
+            font-size: 0.8rem;
+            letter-spacing: 0.15em;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin: 32px 0 12px;
+        }
+        .curses { display: flex; flex-wrap: wrap; gap: 10px; }
+        button {
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 10px 14px;
+            font: inherit;
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        button:hover:not(:disabled) { border-color: var(--marigold); color: var(--marigold); }
+        button:disabled { opacity: 0.4; cursor: wait; }
+        textarea {
+            width: 100%;
+            min-height: 140px;
+            background: var(--panel);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            padding: 12px;
+            font: inherit;
+            font-size: 0.85rem;
+            resize: vertical;
+        }
+        .seance-row { margin-top: 10px; }
+        #status { color: var(--muted); margin-top: 32px; min-height: 1.5em; }
+        .flicker { animation: flicker 1.4s infinite; }
+        @keyframes flicker {
+            0%, 100% { opacity: 1; }
+            40% { opacity: 0.4; }
+            60% { opacity: 0.8; }
+        }
+        #haunting {
+            display: none;
+            margin-top: 16px;
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 10px;
+            padding: 24px;
+        }
+        #ghost-name {
+            font-family: Georgia, serif;
+            font-size: 1.4rem;
+            color: var(--ghost);
+            margin: 0 0 12px;
+        }
+        #whisper {
+            font-family: Georgia, serif;
+            font-style: italic;
+            font-size: 1.15rem;
+            line-height: 1.6;
+            color: var(--ghost);
+            text-shadow: 0 0 12px rgba(148, 226, 213, 0.4);
+            margin: 0 0 24px;
+            min-height: 1.6em;
+        }
+        dl { margin: 0; display: grid; gap: 14px; }
+        dt { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
+        dd { margin: 4px 0 0; line-height: 1.5; overflow-wrap: anywhere; }
+        #exception { color: var(--blood); }
+        #culprit { color: var(--marigold); }
+
+        footer {
+            margin-top: 64px;
+            padding-top: 16px;
+            border-top: 1px solid var(--border);
+            color: var(--muted);
+            font-size: 0.8rem;
+        }
+        footer a { color: var(--marigold); text-decoration: none; }
+        footer a:hover { text-decoration: underline; }
+    </style>
+</head>
+<body>
+<main>
+    <h1>The Haunted Stack Trace</h1>
+    <p class="subtitle">
+        Every exception in this app is explained by the ghost of a deprecated Java API,
+        running on Gemma 4 on this machine. Nothing leaves it.
+    </p>
+
+    <h2>Trigger a curse</h2>
+    <div class="curses">
+        <button data-curse="null">NullPointerException</button>
+        <button data-curse="index">ArrayIndexOutOfBounds</button>
+        <button data-curse="number">NumberFormatException</button>
+        <button data-curse="concurrent">ConcurrentModification</button>
+        <button data-curse="date">DateTimeParseException</button>
+    </div>
+
+    <h2>Or hold a séance with your own stack trace</h2>
+    <textarea id="trace" placeholder="Paste a Java stack trace here..."></textarea>
+    <div class="seance-row">
+        <button id="seance-button">Summon the ghost</button>
+    </div>
+
+    <p id="status"></p>
+
+    <section id="haunting">
+        <p id="ghost-name"></p>
+        <p id="whisper"></p>
+        <dl>
+            <div><dt>Exception</dt><dd id="exception"></dd></div>
+            <div><dt>Culprit</dt><dd id="culprit"></dd></div>
+            <div><dt>Cause</dt><dd id="cause"></dd></div>
+            <div><dt>Fix</dt><dd id="fix"></dd></div>
+        </dl>
+    </section>
+    <footer>
+        Summoned with <span style="color: var(--blood)">♥</span> by Mauro Del Core ·
+        <a href="https://github.com/Maurodc90/haunted-stack-trace" target="_blank" rel="noopener">GitHub</a>
+    </footer>
+</main>
+
+<script>
+    const buttons = document.querySelectorAll("button");
+    const statusLine = document.getElementById("status");
+    const hauntingPanel = document.getElementById("haunting");
+    let typingTimer = null;
+
+    // Each curse button calls an endpoint that throws on purpose.
+    document.querySelectorAll("[data-curse]").forEach(button => {
+        button.addEventListener("click", () => summon(fetch("/cursed/" + button.dataset.curse)));
+    });
+
+    // The séance sends a pasted stack trace as plain text.
+    document.getElementById("seance-button").addEventListener("click", () => {
+        const trace = document.getElementById("trace").value;
+        if (trace.trim() === "") {
+            statusLine.textContent = "The spirits need a stack trace.";
+            return;
+        }
+        summon(fetch("/seance", {
+            method: "POST",
+            headers: { "Content-Type": "text/plain" },
+            body: trace
+        }));
+    });
+
+    /**
+     * Waits for the server, then shows the ghost's answer.
+     * The cursed endpoints answer with status 500 on purpose, so the status code is not treated as a failure.
+     *
+     * @param request the pending fetch call
+     */
+    async function summon(request) {
+        setBusy(true);
+        hauntingPanel.style.display = "none";
+        statusLine.textContent = "Summoning... the first call wakes the model and can take a while.";
+        statusLine.classList.add("flicker");
+
+        try {
+            const response = await request;
+            const haunting = await response.json();
+            showHaunting(haunting);
+            statusLine.textContent = "";
+        } catch (error) {
+            statusLine.textContent = "Nothing answered. Is the app running?";
+        } finally {
+            statusLine.classList.remove("flicker");
+            setBusy(false);
+        }
+    }
+
+    /**
+     * Fills the panel. textContent, not innerHTML: model output is never treated as HTML.
+     *
+     * @param haunting the JSON returned by the server
+     */
+    function showHaunting(haunting) {
+        document.getElementById("ghost-name").textContent = "The ghost of " + haunting.ghost;
+        document.getElementById("exception").textContent = haunting.exception;
+        document.getElementById("culprit").textContent = haunting.culprit;
+        document.getElementById("cause").textContent = haunting.cause;
+        document.getElementById("fix").textContent = haunting.fix;
+        hauntingPanel.style.display = "block";
+        typeWhisper(haunting.whisper);
+    }
+
+    /**
+     * Types the whisper one character at a time.
+     *
+     * @param text the ghost's whisper
+     */
+    function typeWhisper(text) {
+        const whisper = document.getElementById("whisper");
+        clearInterval(typingTimer);
+        whisper.textContent = "";
+        let index = 0;
+        typingTimer = setInterval(() => {
+            if (index >= text.length) {
+                clearInterval(typingTimer);
+                return;
+            }
+            whisper.textContent += text[index];
+            index++;
+        }, 35);
+    }
+
+    /**
+     * Disables the buttons while the model is thinking, so one request runs at a time.
+     *
+     * @param busy true while waiting for an answer
+     */
+    function setBusy(busy) {
+        buttons.forEach(button => button.disabled = busy);
+    }
+</script>
+</body>
+</html>
