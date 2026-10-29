@@ -1,0 +1,13 @@
+spring:
+  application:
+    name: haunted-stack-trace
+  ai:
+    ollama:
+      # Local Ollama server; nothing leaves the machine.
+      base-url: http://localhost:11434
+
+ghost:
+  # Open-weight model served by Ollama. Swap for gemma4:26b if answers are weak.
+  model: gemma4:12b
+  # Only the top of the trace is sent: it holds the throw site and keeps answers fast.
+  max-trace-lines: 25
