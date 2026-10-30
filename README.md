@@ -1,5 +1,7 @@
 # The Haunted Stack Trace
 
+[![CI](https://github.com/Maurodc90/haunted-stack-trace/actions/workflows/ci.yml/badge.svg)](https://github.com/Maurodc90/haunted-stack-trace/actions/workflows/ci.yml)
+
 A Spring Boot error handler possessed by the ghosts of deprecated Java APIs.
 
 When the application throws an exception, it does not return a plain 500 page. The stack trace is sent to **Gemma 4**, an open-weight model running locally through **Ollama**, and a ghost (`java.util.Date`, `Vector`, `Hashtable`, `Applet` or `StringTokenizer`) answers with what broke, the exact line, why it happened and how to fix it. Then it whispers something unsettling.
