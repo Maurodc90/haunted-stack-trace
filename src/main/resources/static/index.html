@@ -18,38 +18,75 @@
             --blood: #f38ba8;    /* red */
         }
         * { box-sizing: border-box; }
+        html, body { height: 100%; }
         body {
             margin: 0;
-            background: radial-gradient(ellipse at top, #313244 0%, var(--bg) 55%);
+            background: linear-gradient(180deg, #262637 0%, var(--bg) 60%);
             color: var(--text);
             font-family: ui-monospace, "SF Mono", Menlo, Consolas, monospace;
+            /* Header, content and footer fill exactly one screen. */
+            display: flex;
+            flex-direction: column;
             min-height: 100vh;
         }
-        main { max-width: 860px; margin: 0 auto; padding: 40px 16px 80px; }
+
+        header { text-align: center; padding: 28px 16px 8px; }
         h1 {
             font-family: Georgia, "Times New Roman", serif;
             font-weight: normal;
-            font-size: clamp(2rem, 6vw, 3.2rem);
-            margin: 0 0 8px;
+            font-size: clamp(2rem, 5vw, 2.8rem);
+            margin: 0 0 6px;
             color: var(--marigold);
             text-shadow: 0 0 18px rgba(250, 179, 135, 0.35);
         }
-        .subtitle { color: var(--muted); margin: 0 0 32px; line-height: 1.5; }
+        .subtitle { color: var(--muted); margin: 0; line-height: 1.5; }
+
+        /* The content area takes the free height and centres the cards inside it. */
+        main {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            width: 100%;
+            max-width: 1320px;
+            margin: 0 auto;
+            padding: 20px 16px;
+        }
+        .layout { display: grid; gap: 24px; }
+        @media (min-width: 1000px) {
+            .layout { grid-template-columns: 1fr 1fr; align-items: stretch; }
+        }
+
+        .card {
+            background: var(--panel);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 24px;
+            display: flex;
+            flex-direction: column;
+        }
         h2 {
             font-size: 0.8rem;
             letter-spacing: 0.15em;
             text-transform: uppercase;
             color: var(--muted);
-            margin: 32px 0 12px;
+            text-align: center;
+            margin: 0 0 14px;
         }
-        .curses { display: flex; flex-wrap: wrap; gap: 10px; }
+        .controls section + section { margin-top: 24px; }
+        .controls .seance { flex: 1; display: flex; flex-direction: column; }
+
+        /* Even grid of curse buttons; the fifth spans both columns. */
+        .curses { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+        .curses button:last-child { grid-column: span 2; }
         button {
-            background: var(--panel);
+            background: var(--bg);
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 10px 14px;
             font: inherit;
+            text-align: center;
             cursor: pointer;
             transition: border-color 0.2s, color 0.2s;
         }
@@ -57,32 +94,49 @@
         button:disabled { opacity: 0.4; cursor: wait; }
         textarea {
             width: 100%;
+            flex: 1;
             min-height: 140px;
-            background: var(--panel);
+            background: var(--bg);
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 6px;
             padding: 12px;
             font: inherit;
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             resize: vertical;
         }
-        .seance-row { margin-top: 10px; }
-        #status { color: var(--muted); margin-top: 32px; min-height: 1.5em; }
+        #seance-button { margin-top: 10px; width: 100%; }
+
+        /* Right card: a waiting ghost until an answer arrives. */
+        #waiting {
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            gap: 18px;
+            text-align: center;
+            color: var(--muted);
+            min-height: 260px;
+        }
+        #status { max-width: 30ch; line-height: 1.6; margin: 0; }
+        .ghost-icon {
+            color: var(--ghost);
+            filter: drop-shadow(0 0 10px rgba(148, 226, 213, 0.45));
+            animation: float 3s ease-in-out infinite;
+        }
+        @keyframes float {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
         .flicker { animation: flicker 1.4s infinite; }
         @keyframes flicker {
             0%, 100% { opacity: 1; }
             40% { opacity: 0.4; }
             60% { opacity: 0.8; }
         }
-        #haunting {
-            display: none;
-            margin-top: 16px;
-            background: var(--panel);
-            border: 1px solid var(--border);
-            border-radius: 10px;
-            padding: 24px;
-        }
+
+        #haunting { display: none; }
         #ghost-name {
             font-family: Georgia, serif;
             font-size: 1.4rem;
@@ -92,75 +146,105 @@
         #whisper {
             font-family: Georgia, serif;
             font-style: italic;
-            font-size: 1.15rem;
-            line-height: 1.6;
+            font-size: 1.1rem;
+            line-height: 1.55;
             color: var(--ghost);
             text-shadow: 0 0 12px rgba(148, 226, 213, 0.4);
-            margin: 0 0 24px;
-            min-height: 1.6em;
+            margin: 0 0 20px;
+            min-height: 1.55em;
         }
-        dl { margin: 0; display: grid; gap: 14px; }
+        dl { margin: 0; display: grid; gap: 12px; }
         dt { color: var(--muted); font-size: 0.75rem; letter-spacing: 0.12em; text-transform: uppercase; }
-        dd { margin: 4px 0 0; line-height: 1.5; overflow-wrap: anywhere; }
+        dd { margin: 4px 0 0; line-height: 1.5; overflow-wrap: anywhere; font-size: 0.9rem; }
         #exception { color: var(--blood); }
         #culprit { color: var(--marigold); }
+        #banish-button { margin-top: 20px; width: 100%; }
 
         footer {
-            margin-top: 64px;
-            padding-top: 16px;
-            border-top: 1px solid var(--border);
+            text-align: center;
             color: var(--muted);
             font-size: 0.8rem;
+            padding: 14px 16px 20px;
+            border-top: 1px solid var(--border);
+            line-height: 1.7;
         }
         footer a { color: var(--marigold); text-decoration: none; }
         footer a:hover { text-decoration: underline; }
     </style>
 </head>
 <body>
-<main>
+<header>
     <h1>The Haunted Stack Trace</h1>
     <p class="subtitle">
-        Every exception in this app is explained by the ghost of a deprecated Java API,
+        Every exception is explained by the ghost of a deprecated Java API,
         running on Gemma 4 on this machine. Nothing leaves it.
     </p>
+</header>
 
-    <h2>Trigger a curse</h2>
-    <div class="curses">
-        <button data-curse="null">NullPointerException</button>
-        <button data-curse="index">ArrayIndexOutOfBounds</button>
-        <button data-curse="number">NumberFormatException</button>
-        <button data-curse="concurrent">ConcurrentModification</button>
-        <button data-curse="date">DateTimeParseException</button>
+<main>
+    <div class="layout">
+        <div class="card controls">
+            <section>
+                <h2>Trigger a curse</h2>
+                <div class="curses">
+                    <button data-curse="null">NullPointerException</button>
+                    <button data-curse="index">ArrayIndexOutOfBounds</button>
+                    <button data-curse="number">NumberFormatException</button>
+                    <button data-curse="concurrent">ConcurrentModification</button>
+                    <button data-curse="date">DateTimeParseException</button>
+                </div>
+            </section>
+
+            <section class="seance">
+                <h2>Or hold a séance with your own stack trace</h2>
+                <textarea id="trace" placeholder="Paste a Java stack trace here...  (⌘ + Enter to summon)"></textarea>
+                <button id="seance-button">Summon the ghost</button>
+            </section>
+        </div>
+
+        <div class="card answer">
+            <h2>The ghost speaks</h2>
+
+            <div id="waiting">
+                <svg class="ghost-icon" width="72" height="80" viewBox="0 0 64 72" aria-hidden="true">
+                    <path d="M32 4C18 4 8 15 8 29v39l8-6 8 6 8-6 8 6 8-6 8 6V29C56 15 46 4 32 4z"
+                          fill="none" stroke="currentColor" stroke-width="2.5" stroke-linejoin="round"/>
+                    <circle cx="24" cy="30" r="3.5" fill="currentColor"/>
+                    <circle cx="40" cy="30" r="3.5" fill="currentColor"/>
+                </svg>
+                <p id="status">Trigger a curse or hold a séance. The ghost is waiting.</p>
+            </div>
+
+            <section id="haunting">
+                <p id="ghost-name"></p>
+                <p id="whisper"></p>
+                <dl>
+                    <div><dt>Exception</dt><dd id="exception"></dd></div>
+                    <div><dt>Culprit</dt><dd id="culprit"></dd></div>
+                    <div><dt>Cause</dt><dd id="cause"></dd></div>
+                    <div><dt>Fix</dt><dd id="fix"></dd></div>
+                </dl>
+                <button id="banish-button">Banish the ghost</button>
+            </section>
+        </div>
     </div>
-
-    <h2>Or hold a séance with your own stack trace</h2>
-    <textarea id="trace" placeholder="Paste a Java stack trace here..."></textarea>
-    <div class="seance-row">
-        <button id="seance-button">Summon the ghost</button>
-    </div>
-
-    <p id="status"></p>
-
-    <section id="haunting">
-        <p id="ghost-name"></p>
-        <p id="whisper"></p>
-        <dl>
-            <div><dt>Exception</dt><dd id="exception"></dd></div>
-            <div><dt>Culprit</dt><dd id="culprit"></dd></div>
-            <div><dt>Cause</dt><dd id="cause"></dd></div>
-            <div><dt>Fix</dt><dd id="fix"></dd></div>
-        </dl>
-    </section>
-    <footer>
-        Summoned with <span style="color: var(--blood)">♥</span> by Mauro Del Core ·
-        <a href="https://github.com/Maurodc90/haunted-stack-trace" target="_blank" rel="noopener">GitHub</a>
-    </footer>
 </main>
 
+<footer>
+    Summoned with <span style="color: var(--blood)">♥</span> by Mauro Del Core ·
+    <a href="https://github.com/Maurodc90/haunted-stack-trace" target="_blank" rel="noopener">GitHub</a><br>
+    Built for the DEV Hacktoberfest 2026 Open-Source AI Challenge · Ghost in the Machine
+</footer>
+
 <script>
+    const WAITING_MESSAGE = "Trigger a curse or hold a séance. The ghost is waiting.";
+
     const buttons = document.querySelectorAll("button");
+    const waitingPanel = document.getElementById("waiting");
     const statusLine = document.getElementById("status");
     const hauntingPanel = document.getElementById("haunting");
+    const traceBox = document.getElementById("trace");
+    const seanceButton = document.getElementById("seance-button");
     let typingTimer = null;
 
     // Each curse button calls an endpoint that throws on purpose.
@@ -169,10 +253,10 @@
     });
 
     // The séance sends a pasted stack trace as plain text.
-    document.getElementById("seance-button").addEventListener("click", () => {
-        const trace = document.getElementById("trace").value;
+    seanceButton.addEventListener("click", () => {
+        const trace = traceBox.value;
         if (trace.trim() === "") {
-            statusLine.textContent = "The spirits need a stack trace.";
+            showWaiting("The spirits need a stack trace.", false);
             return;
         }
         summon(fetch("/seance", {
@@ -180,6 +264,21 @@
             headers: { "Content-Type": "text/plain" },
             body: trace
         }));
+    });
+
+    // Cmd+Enter (Ctrl+Enter on Windows) summons from the keyboard; plain Enter still adds a new line.
+    traceBox.addEventListener("keydown", event => {
+        if (event.key === "Enter" && (event.metaKey || event.ctrlKey)) {
+            event.preventDefault();
+            seanceButton.click();
+        }
+    });
+
+    // Sends the ghost away, clears the séance box and brings back the waiting screen.
+    document.getElementById("banish-button").addEventListener("click", () => {
+        clearInterval(typingTimer);
+        traceBox.value = "";
+        showWaiting(WAITING_MESSAGE, false);
     });
 
     /**
@@ -190,17 +289,15 @@
      */
     async function summon(request) {
         setBusy(true);
-        hauntingPanel.style.display = "none";
-        statusLine.textContent = "Summoning... the first call wakes the model and can take a while.";
-        statusLine.classList.add("flicker");
+        showWaiting("Summoning...", true);
 
         try {
             const response = await request;
             const haunting = await response.json();
             showHaunting(haunting);
-            statusLine.textContent = "";
         } catch (error) {
-            statusLine.textContent = "Nothing answered. Is the app running?";
+            // The pasted trace stays in the box, so nothing is lost when the request fails.
+            showWaiting("Nothing answered. Is the app running?", false);
         } finally {
             statusLine.classList.remove("flicker");
             setBusy(false);
@@ -208,7 +305,21 @@
     }
 
     /**
-     * Fills the panel. textContent, not innerHTML: model output is never treated as HTML.
+     * Shows the waiting ghost with a message instead of an answer.
+     *
+     * @param message    text under the ghost
+     * @param flickering true while a request is in progress
+     */
+    function showWaiting(message, flickering) {
+        hauntingPanel.style.display = "none";
+        waitingPanel.style.display = "flex";
+        statusLine.textContent = message;
+        statusLine.classList.toggle("flicker", flickering);
+    }
+
+    /**
+     * Fills the answer panel and clears the séance box for the next trace.
+     * textContent, not innerHTML: model output is never treated as HTML.
      *
      * @param haunting the JSON returned by the server
      */
@@ -218,7 +329,9 @@
         document.getElementById("culprit").textContent = haunting.culprit;
         document.getElementById("cause").textContent = haunting.cause;
         document.getElementById("fix").textContent = haunting.fix;
+        waitingPanel.style.display = "none";
         hauntingPanel.style.display = "block";
+        traceBox.value = ""; // the trace has been answered; clear the box for the next one
         typeWhisper(haunting.whisper);
     }
 
